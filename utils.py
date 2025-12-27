@@ -1,34 +1,30 @@
 import pandas as pd
 import numpy as np
+from sklearn.ensemble import IsolationForest
 
-def preprocess_data(data):
+def preprocess_data(df):
     """
-    Example preprocessing:
-    - Fill missing numeric values with 0
-    - Keep numeric columns only
+    Keep only numeric columns and fill missing values
     """
-    if isinstance(data, pd.DataFrame):
-        df = data.copy()
-        numeric_cols = df.select_dtypes(include=np.number).columns
-        df[numeric_cols] = df[numeric_cols].fillna(0)
-        return df[numeric_cols]
-    else:
-        return pd.read_csv(data)
+    numeric_df = df.select_dtypes(include=np.number)
+    numeric_df = numeric_df.fillna(0)
+    return numeric_df
 
-def detect_anomalies(data, model=None):
+
+def detect_anomalies(X):
     """
-    Detect anomalies using either ML model (if provided) or simple rule-based:
-    - Rule: any negative value is an anomaly
-    Returns: list of row indices that are anomalous
+    Detect anomalies using Isolation Forest
+    Returns dataframe with anomaly labels
     """
-    anomalies = []
-    if isinstance(data, pd.DataFrame):
-        if model:
-            # Example placeholder: model prediction
-            preds = model.predict(data)
-            anomalies = list(np.where(preds == 1)[0])
-        else:
-            for idx, row in data.iterrows():
-                if any(row < 0):
-                    anomalies.append(idx)
-    return anomalies
+    model = IsolationForest(
+        contamination=0.05,
+        random_state=42
+    )
+
+    preds = model.fit_predict(X)
+
+    result = X.copy()
+    result["anomaly"] = preds
+    result["is_anomaly"] = result["anomaly"] == -1
+
+    return result
