@@ -1,29 +1,34 @@
-# utils.py
-
 import pandas as pd
+import numpy as np
 
 def preprocess_data(data):
     """
-    Placeholder function to preprocess blockchain data.
-    Currently, it just returns the input as a DataFrame.
-    Replace this with real preprocessing logic.
+    Example preprocessing:
+    - Fill missing numeric values with 0
+    - Keep numeric columns only
     """
     if isinstance(data, pd.DataFrame):
-        return data
+        df = data.copy()
+        numeric_cols = df.select_dtypes(include=np.number).columns
+        df[numeric_cols] = df[numeric_cols].fillna(0)
+        return df[numeric_cols]
     else:
-        # assume data is a CSV path
         return pd.read_csv(data)
 
-def detect_anomalies(data):
+def detect_anomalies(data, model=None):
     """
-    Placeholder function to detect anomalies in blockchain data.
-    Currently, it returns an empty list.
-    Replace this with your real anomaly detection logic.
+    Detect anomalies using either ML model (if provided) or simple rule-based:
+    - Rule: any negative value is an anomaly
+    Returns: list of row indices that are anomalous
     """
-    # Example: mark rows with negative values as anomalies
     anomalies = []
     if isinstance(data, pd.DataFrame):
-        for idx, row in data.iterrows():
-            if any(row < 0):
-                anomalies.append(idx)
+        if model:
+            # Example placeholder: model prediction
+            preds = model.predict(data)
+            anomalies = list(np.where(preds == 1)[0])
+        else:
+            for idx, row in data.iterrows():
+                if any(row < 0):
+                    anomalies.append(idx)
     return anomalies
